@@ -34,7 +34,30 @@ def short_preview(text, length=300):
         return text
     return text[:length].rsplit(" ", 1)[0] + "..."
 
-
+def search_hadith_tool(query: str, top_k: int = 5) -> list[dict]:
+    """
+    Search Sahih al-Bukhari for hadiths relevant to a query.
+    Uses ColBERT late-interaction semantic search combined with BM25.
+    The query can be a topic, question or description of a meaning,
+    preferably in Arabic.
+    Args:
+        query: Non-empty search text.
+        top_k: Number of hadiths to return, 1 to 20 (default 5). Values above 20 are limited to 20.
+    Returns:
+        A list of hadiths, best match first, each with "hadith", "isnad_text" and "url".
+    """
+    try:
+        results_df, _ = search_df(query, top_k)
+    except ValueError as e:
+        raise gr.Error(str(e))
+    return [
+        {
+            "hadith": str(row["matn_text"]),
+            "isnad_text": str(row["isnad_text"]),
+            "url": str(row["url"]),
+        }
+        for _, row in results_df.iterrows()
+    ]
 # ===============================
 # Search function (UI layer only)
 # ===============================
@@ -102,7 +125,6 @@ def search_hadith(query, top_k):
 # ===============================
 CUSTOM_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;700&display=swap');
-
 :root {
     --body-background-fill: #020617 !important;
     --background-fill-primary: #020617 !important;
@@ -113,19 +135,16 @@ CUSTOM_CSS = """
     --button-primary-background-fill: #3b82f6 !important;
     --button-primary-background-fill-hover: #2563eb !important;
 }
-
 body, .gradio-container, .gr-panel, .gr-box, .gr-form, .wrap, .panel, .block, footer {
     background-color: #020617 !important;
     color: #f1f5f9 !important;
     font-family: 'Cairo', 'Noto Sans Arabic', system-ui, sans-serif !important;
 }
 .gradio-container { max-width: 960px !important; margin: 0 auto !important; }
-
 .text-rtl, .full-text, .summary, .title, .topic {
     font-family: 'Cairo', 'Noto Sans Arabic', sans-serif !important;
     line-height: 2.05 !important;
 }
-
 label span, input, textarea, .gr-input, .gr-textarea {
     color: #f1f5f9 !important;
     background: #1e2937 !important;
@@ -135,7 +154,6 @@ button.primary {
     background: linear-gradient(90deg, #3b82f6, #60a5fa) !important;
     font-weight: 600 !important;
 }
-
 .card {
     background: #1e2937 !important;
     border-radius: 18px !important;
@@ -161,7 +179,6 @@ button.primary {
 .title { font-size: 19px !important; font-weight: 700 !important; }
 .topic { font-size: 14px !important; color: #94a3b8 !important; }
 .meta { font-size: 13px; color: #94a3b8; }
-
 .text-rtl {
     direction: rtl;
     text-align: right;
@@ -172,11 +189,9 @@ button.primary {
     font-size: 17px !important;
     color: #e2e8f0 !important;
 }
-
 .results { margin-top: 24px; }
 .footer a { color: #60a5fa !important; font-weight: 600 !important; }
 .empty { color: #94a3b8 !important; text-align: center; padding: 50px 20px; font-size: 17px; }
-
 @media (max-width: 768px) {
     .card-header { flex-direction: column !important; }
 }
@@ -185,7 +200,7 @@ button.primary {
 # ===============================
 # Interface
 # ===============================
-demo = gr.Interface(
+ui = gr.Interface(
     fn=search_hadith,
     inputs=[
         gr.Textbox(
@@ -209,11 +224,18 @@ demo = gr.Interface(
     ],
     cache_examples=False,  # don't run searches at startup
     flagging_mode="never",
+       api_name=False, 
 )
+with gr.Blocks() as demo:
+    ui.render()
+    gr.api(search_hadith_tool, api_name="search_hadith")
 
 # one search at a time: the model runs on CPU, parallel calls would just slow each other
 demo.queue(default_concurrency_limit=1, max_size=10)
 
 if __name__ == "__main__":
     # Gradio 6: theme and css are passed to launch(), not the constructor
-    demo.launch(theme=gr.themes.Soft(), css=CUSTOM_CSS)
+    demo.launch(mcp_server=True, theme=gr.themes.Soft(), css=CUSTOM_CSS)
+# one search at a time: the model runs on CPU, parallel calls would just slow each other
+ 
+  
