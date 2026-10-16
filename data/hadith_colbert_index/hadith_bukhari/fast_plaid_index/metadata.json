@@ -1,0 +1,9 @@
+{
+  "avg_doclen": 69.00125529577907,
+  "compress_only": false,
+  "nbits": 4,
+  "num_chunks": 1,
+  "num_documents": 6373,
+  "num_embeddings": 439745,
+  "num_partitions": 8192
+}
