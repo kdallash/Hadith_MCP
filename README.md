@@ -78,14 +78,18 @@ The same engine runs as an MCP server exposing one tool:
 
 Server endpoint: `<ADD YOUR MCP URL HERE>`
 
-Example client configuration (replace the URL):
+Example client configuration :
 
 ```json
+
 {
   "mcpServers": {
-    "hadith-search": { "url": "<ADD YOUR MCP URL HERE>" }
+    "hadith-search": {
+      "url": "https://kdallash-hadith-semantic-search.hf.space/gradio_api/mcp/"
+    }
   }
 }
+
 ```
 
 ## Run locally
