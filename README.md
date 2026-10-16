@@ -76,7 +76,7 @@ The same engine runs as an MCP server exposing one tool:
 | Returns | list of `{ "hadith", "isnad_text", "url" }`, best match first |
 | Errors | empty `query` or `top_k` below 1 returns an MCP error (`isError`) |
 
-Server endpoint: `<ADD YOUR MCP URL HERE>`
+Server endpoint: `https://kdallash-hadith-semantic-search.hf.space/gradio_api/mcp/`
 
 Example client configuration :
 
